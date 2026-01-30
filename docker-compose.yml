@@ -1,0 +1,26 @@
+services:
+  resend-local:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: resend-local
+    ports:
+      - "${RESEND_LOCAL_PORT:-8005}:${RESEND_LOCAL_PORT:-8005}"
+    environment:
+      - PORT=${RESEND_LOCAL_PORT:-8005}
+      - NODE_ENV=production
+    command: ["-p", "${RESEND_LOCAL_PORT:-8005}"]
+    volumes:
+      # Persist SQLite database
+      - resend-data:/app/dist/app
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:${RESEND_LOCAL_PORT:-8005}/dashboard"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  resend-data:
+    driver: local
