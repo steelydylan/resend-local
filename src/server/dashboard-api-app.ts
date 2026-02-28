@@ -63,7 +63,20 @@ export const serverApp = new Hono()
       return c.text("Attachment not found", 404);
     }
 
-    return c.body(Uint8Array.from(attachment.content), {
+    // SQLite blob can return different types depending on the driver
+    let content: Uint8Array;
+    if (Buffer.isBuffer(attachment.content)) {
+      content = new Uint8Array(attachment.content);
+    } else if (attachment.content instanceof ArrayBuffer) {
+      content = new Uint8Array(attachment.content);
+    } else if (attachment.content instanceof Uint8Array) {
+      content = attachment.content;
+    } else {
+      // Fallback: try to convert from whatever type it is
+      content = new Uint8Array(Buffer.from(attachment.content as unknown as string, "base64"));
+    }
+
+    return c.body(content, {
       headers: {
         "Content-Type": attachment.contentType,
         "Content-Disposition": `attachment; filename="${attachment.filename}"`,
