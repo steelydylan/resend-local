@@ -78,10 +78,13 @@ export const serverApp = new Hono()
       ? attachment.content
       : Buffer.from(attachment.content as ArrayBuffer);
 
+    // RFC 5987 encoding for non-ASCII filenames
+    const encodedFilename = encodeURIComponent(attachment.filename ?? "attachment");
+
     return c.body(content as unknown as null, {
       headers: {
         "Content-Type": attachment.contentType,
-        "Content-Disposition": `attachment; filename="${attachment.filename}"`,
+        "Content-Disposition": `attachment; filename*=UTF-8''${encodedFilename}`,
       },
     });
   });
