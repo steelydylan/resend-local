@@ -88,7 +88,8 @@ export const serverApp = new Hono()
       content = new Uint8Array(Buffer.from(rawContent as string, "base64"));
     }
 
-    return new Response(content, {
+    const blob = new Blob([content], { type: attachment.contentType });
+    return new Response(blob, {
       headers: {
         "Content-Type": attachment.contentType,
         "Content-Disposition": `attachment; filename="${attachment.filename}"`,
