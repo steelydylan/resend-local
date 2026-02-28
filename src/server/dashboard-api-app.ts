@@ -73,23 +73,12 @@ export const serverApp = new Hono()
       constructor: attachment.content?.constructor?.name,
     });
 
-    // SQLite blob can return different types depending on the driver
-    // Cast to unknown first to allow runtime type checks
-    const rawContent = attachment.content as unknown;
-    let content: Uint8Array;
-    if (Buffer.isBuffer(rawContent)) {
-      content = new Uint8Array(rawContent);
-    } else if (rawContent instanceof ArrayBuffer) {
-      content = new Uint8Array(rawContent);
-    } else if (rawContent instanceof Uint8Array) {
-      content = rawContent;
-    } else {
-      // Fallback: try to convert from whatever type it is
-      content = new Uint8Array(Buffer.from(rawContent as string, "base64"));
-    }
+    // Ensure content is a Buffer for Response
+    const content = Buffer.isBuffer(attachment.content)
+      ? attachment.content
+      : Buffer.from(attachment.content as ArrayBuffer);
 
-    const blob = new Blob([content], { type: attachment.contentType });
-    return new Response(blob, {
+    return c.body(content as unknown as null, {
       headers: {
         "Content-Type": attachment.contentType,
         "Content-Disposition": `attachment; filename="${attachment.filename}"`,
