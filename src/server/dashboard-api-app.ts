@@ -63,6 +63,16 @@ export const serverApp = new Hono()
       return c.text("Attachment not found", 404);
     }
 
+    // Debug logging
+    console.log("[Attachment Debug]", {
+      hasContent: !!attachment.content,
+      contentType: typeof attachment.content,
+      isBuffer: Buffer.isBuffer(attachment.content),
+      isArrayBuffer: attachment.content instanceof ArrayBuffer,
+      isUint8Array: attachment.content instanceof Uint8Array,
+      constructor: attachment.content?.constructor?.name,
+    });
+
     // SQLite blob can return different types depending on the driver
     let content: Uint8Array;
     if (Buffer.isBuffer(attachment.content)) {
